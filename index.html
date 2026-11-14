@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#4f46e5" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Élan" />
+  <title>Élan — Agenda Anti-Procrastination</title>
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="./icon.svg" />
+  <link rel="apple-touch-icon" href="./icon.svg" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="desktop-stage" id="desktopStage">
+    <div class="desktop-toolbar" aria-label="Options d'aperçu bureau">
+      <span class="desktop-badge">Aperçu mobile interactif</span>
+      <button type="button" class="desktop-toggle-btn" id="toggleFrameBtn">
+        Plein écran
+      </button>
+    </div>
+
+    <div class="app-shell" id="appShell">
+      <div class="phone-notch" aria-hidden="true"></div>
+
+      <!-- Header -->
+      <header class="app-header">
+        <div class="brand-group">
+          <div class="brand-logo" aria-hidden="true">⚡</div>
+          <div class="brand-text">
+            <h1 class="brand-title">Élan</h1>
+            <p class="brand-subtitle" id="headerClock">Aujourd'hui</p>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <button
+            type="button"
+            class="pill-btn pill-bank"
+            id="headerBankBtn"
+            title="Voir ma banque de temps gagné"
+          >
+            <span aria-hidden="true">⏱️</span>
+            <span id="headerBankText">+0m</span>
+          </button>
+
+          <button
+            type="button"
+            class="icon-btn"
+            id="openAgendaBtn"
+            aria-label="Agenda et réglages"
+            title="Connexion agenda (.ics) & réglages"
+          >
+            📅
+          </button>
+
+          <button
+            type="button"
+            class="icon-btn"
+            id="toggleThemeBtn"
+            aria-label="Changer de thème"
+            title="Mode clair / sombre"
+          >
+            🌙
+          </button>
+        </div>
+      </header>
+
+      <!-- Dynamic Context Banner (Break Timer or Overdue Re-plan) -->
+      <div id="contextBanner" class="context-banner hidden" role="status"></div>
+
+      <!-- Main Scrollable Screen -->
+      <main id="mainContent" class="main-content" tabindex="-1"></main>
+
+      <!-- Bottom Thumb Navigation -->
+      <nav class="bottom-nav" aria-label="Navigation principale">
+        <button type="button" class="nav-item active" data-tab="now">
+          <span class="nav-icon" aria-hidden="true">⚡</span>
+          <span class="nav-label">Maintenant</span>
+        </button>
+
+        <button type="button" class="nav-item" data-tab="day">
+          <span class="nav-icon" aria-hidden="true">☀️</span>
+          <span class="nav-label">Journée</span>
+        </button>
+
+        <button
+          type="button"
+          class="nav-fab"
+          id="openQuickAddBtn"
+          aria-label="Ajouter un objectif rapidement"
+        >
+          <span aria-hidden="true">+</span>
+        </button>
+
+        <button type="button" class="nav-item" data-tab="week">
+          <span class="nav-icon" aria-hidden="true">🗓️</span>
+          <span class="nav-label">Semaine</span>
+        </button>
+
+        <button type="button" class="nav-item" data-tab="elan">
+          <span class="nav-icon" aria-hidden="true">🏆</span>
+          <span class="nav-label">Élan</span>
+        </button>
+      </nav>
+
+      <!-- Bottom Sheet Backdrop -->
+      <div id="sheetBackdrop" class="sheet-backdrop hidden" aria-hidden="true"></div>
+
+      <!-- Bottom Sheet 1: Quick Add -->
+      <section
+        id="quickAddSheet"
+        class="bottom-sheet hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="quickAddTitle"
+      >
+        <div class="sheet-handle" aria-hidden="true"></div>
+        <div class="sheet-header">
+          <h2 id="quickAddTitle">Nouvel objectif</h2>
+          <button type="button" class="sheet-close" data-close-sheet aria-label="Fermer">✕</button>
+        </div>
+
+        <form id="quickAddForm" class="sheet-body">
+          <div id="pinnedSlotBanner" class="pinned-slot-banner hidden"></div>
+
+          <label class="field-label" for="quickTaskInput">Qu'est-ce que tu veux avancer ?</label>
+          <input
+            id="quickTaskInput"
+            type="text"
+            class="text-input"
+            placeholder="Ex : Finir diapos 30m ou Mail urgent ce soir"
+            autocomplete="off"
+            required
+          />
+
+          <p id="nlpHint" class="nlp-hint">
+            Astuce : écris une durée (ex. <code>25m</code>, <code>1h15</code>) ou <code>demain</code>.
+          </p>
+
+          <div class="chip-section">
+            <span class="chip-section-label">Durée estimée</span>
+            <div class="chip-row" id="durationChips">
+              <button type="button" class="chip" data-duration="10">10m</button>
+              <button type="button" class="chip" data-duration="15">15m</button>
+              <button type="button" class="chip active" data-duration="25">25m</button>
+              <button type="button" class="chip" data-duration="45">45m</button>
+              <button type="button" class="chip" data-duration="60">1h</button>
+              <button type="button" class="chip" data-duration="90">1h30</button>
+            </div>
+          </div>
+
+          <div class="chip-section" id="horizonSection">
+            <span class="chip-section-label">Quand le prévoir ?</span>
+            <div class="chip-row" id="horizonChips">
+              <button type="button" class="chip active" data-horizon="soon">Prochaines heures</button>
+              <button type="button" class="chip" data-horizon="today">Aujourd'hui</button>
+              <button type="button" class="chip" data-horizon="tomorrow">Demain</button>
+              <button type="button" class="chip" data-horizon="week">Cette semaine</button>
+            </div>
+          </div>
+
+          <label class="toggle-row">
+            <input type="checkbox" id="victoryCheckbox" />
+            <span>⭐ Ajouter aux <strong>3 Victoires du jour</strong></span>
+          </label>
+
+          <div class="quick-ideas">
+            <span class="chip-section-label">Idées anti-friction (1 tap)</span>
+            <div class="chip-row" id="ideaChips">
+              <button type="button" class="chip chip-soft" data-idea="Répondre aux 3 mails prioritaires 15m">Mails 15m</button>
+              <button type="button" class="chip chip-soft" data-idea="Ranger mon bureau 10m">Bureau 10m</button>
+              <button type="button" class="chip chip-soft" data-idea="Session focus projet 45m">Focus 45m</button>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block" id="quickAddSubmitBtn">
+            Placer dans mon agenda
+          </button>
+        </form>
+      </section>
+
+      <!-- Bottom Sheet 2: Anti-Procrastination Micro-Step Breakdown -->
+      <section
+        id="breakdownSheet"
+        class="bottom-sheet hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="breakdownTitle"
+      >
+        <div class="sheet-handle" aria-hidden="true"></div>
+        <div class="sheet-header">
+          <h2 id="breakdownTitle">Découper pour démarrer</h2>
+          <button type="button" class="sheet-close" data-close-sheet aria-label="Fermer">✕</button>
+        </div>
+
+        <form id="breakdownForm" class="sheet-body">
+          <p class="sheet-intro">
+            Une grosse tâche bloque le cerveau. Découpe <strong id="breakdownTargetName"></strong> en 3 petits pas sans pression :
+          </p>
+
+          <div id="microStepsList" class="micro-steps-list"></div>
+
+          <button type="submit" class="btn btn-primary btn-block">
+            ⚡ Remplacer &amp; lancer le 1er pas (5 min)
+          </button>
+        </form>
+      </section>
+
+      <!-- Bottom Sheet 3: Slot Picker (Pick a free pocket for a task) -->
+      <section
+        id="slotPickerSheet"
+        class="bottom-sheet hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="slotPickerTitle"
+      >
+        <div class="sheet-handle" aria-hidden="true"></div>
+        <div class="sheet-header">
+          <h2 id="slotPickerTitle">Choisir un créneau libre</h2>
+          <button type="button" class="sheet-close" data-close-sheet aria-label="Fermer">✕</button>
+        </div>
+
+        <div class="sheet-body">
+          <p class="sheet-intro">
+            Pour : <strong id="slotPickerTaskLabel"></strong>
+          </p>
+          <div id="slotPickerList" class="slot-picker-list"></div>
+        </div>
+      </section>
+
+      <!-- Bottom Sheet 4: Agenda Sync & Settings -->
+      <section
+        id="agendaSheet"
+        class="bottom-sheet hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="agendaSheetTitle"
+      >
+        <div class="sheet-handle" aria-hidden="true"></div>
+        <div class="sheet-header">
+          <h2 id="agendaSheetTitle">Agenda &amp; Réglages</h2>
+          <button type="button" class="sheet-close" data-close-sheet aria-label="Fermer">✕</button>
+        </div>
+
+        <div class="sheet-body">
+          <div class="settings-card">
+            <div class="settings-card-head">
+              <strong>Connexion Agenda (.ics)</strong>
+              <span class="badge badge-accent" id="calendarSourceBadge">Agenda vide</span>
+            </div>
+            <p class="settings-desc">
+              Importe un export <code>.ics</code> depuis Google Agenda, Apple Calendar ou Outlook pour détecter tes vrais créneaux libres.
+            </p>
+            <div class="settings-btn-row">
+              <label class="btn btn-primary btn-sm file-label">
+                📥 Importer un .ics
+                <input type="file" id="icsFileInput" accept=".ics,text/calendar" hidden />
+              </label>
+              <button type="button" class="btn btn-secondary btn-sm" id="exportIcsBtn">
+                📤 Exporter mes blocs
+              </button>
+            </div>
+            <p class="settings-mini-help">
+              Sur Google Agenda (PC) : Paramètres → Importer et exporter → Exporter (.ics).
+            </p>
+          </div>
+
+          <div class="settings-card">
+            <strong class="settings-block-title">Ma plage horaire active</strong>
+            <p class="settings-desc">
+              Élan ne proposera des créneaux libres qu'à l'intérieur de ces horaires.
+            </p>
+            <div class="hours-grid">
+              <label>
+                <span>Début</span>
+                <select id="dayStartSelect" class="select-input"></select>
+              </label>
+              <label>
+                <span>Fin</span>
+                <select id="dayEndSelect" class="select-input"></select>
+              </label>
+            </div>
+          </div>
+
+          <div class="settings-card">
+            <strong class="settings-block-title">Gestion des données</strong>
+            <div class="settings-btn-row">
+              <button type="button" class="btn btn-secondary btn-sm" id="resetDemoBtn">
+                ✨ Charger des exemples
+              </button>
+              <button type="button" class="btn btn-ghost-danger btn-sm" id="clearAllBtn">
+                🗑️ Tout vider
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Toast Container -->
+      <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+      <!-- Micro celebration overlay -->
+      <div id="burstLayer" class="burst-layer" aria-hidden="true"></div>
+    </div>
+  </div>
+
+  <script defer src="./calendar-engine.js"></script>
+  <script defer src="./app.js"></script>
+</body>
+</html>
