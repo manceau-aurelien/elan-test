@@ -698,7 +698,10 @@ html[data-theme="dark"] .badge-gold {
 
 .radar-item.is-free {
   background: transparent;
+  color: var(--mint-text);
   border: 1.5px dashed var(--mint);
+  width: 100%;
+  text-align: left;
   cursor: pointer;
 }
 
