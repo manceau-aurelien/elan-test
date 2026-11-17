@@ -1,4 +1,4 @@
-const CACHE_NAME = 'elan-proto-v4';
+const CACHE_NAME = 'elan-proto-v5';
 const ASSETS = [
   './',
   './index.html',

@@ -1,6 +1,6 @@
 {
-  "name": "Élan — Agenda Anti-Procrastination",
-  "short_name": "Élan",
+  "name": "Élan test — Agenda Anti-Procrastination",
+  "short_name": "Élan test",
   "description": "L'appli mobile connectée à ton agenda pour casser la procrastination, planifier tes prochaines heures et gagner du temps libre.",
   "start_url": "./index.html",
   "display": "standalone",
